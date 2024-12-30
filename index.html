@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>girl or boy? - فتاة أو ولد </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites/dist/css/foundation.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f8ff;
+            text-align: center;
+        }
+        #gameCanvas {
+            display: none; /* إخفاء الكانفاس في البداية */
+            margin: auto;
+            border: 1px solid #000;
+        }
+        #scoreContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid #8B8B5B;
+            border-radius: 15px;
+            padding: 5px;
+            width: 150px;
+            text-align: center;
+            font-size: 16px;
+        }
+        #score {
+            font-size: 14px;
+            color: #000;
+        }
+        #lives {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        .star {
+            width: 20px;
+            height: 20px;
+            margin-left: 5px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #retryButton, #retryButtonLose {
+            background-color: #f0e68c;
+            color: #000;
+            margin-bottom: 100px
+        }
+        #retryButton:hover, #retryButtonLose:hover {
+            background-color: #e3d05b;
+            transform: scale(1.05);
+            
+        }
+        #startButton {
+            background-color: #e3d05b;
+            color: rgb(2, 2, 2);
+            margin-top: auto; /* لجعل الزر في الأسفل */
+            margin-bottom: 100px; /* مسافة من الأسفل */
+        }
+        #startButton:hover {
+            background-color: #45a049;
+        }
+        #startScreen, #winScreen, #loseScreen {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* توزيع المحتوى بين الأعلى والأسفل */
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            background-image: url('path/to/start-background-image.png'); /* ضع مسار الخلفية هنا */
+            background-size: cover;
+            background-position: center; /* تحديد مركز الصورة */
+        }
+        #winBackground {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('path/to/win-background-image.png'); /* ضع مسار الخلفية هنا */
+            background-size: cover;
+            background-position: center; /* تحديد مركز الصورة */
+            z-index: -1; /* لجعل الخلفية خلف المحتوى */
+            display: none; /* إخفاء الخلفية في البداية */
+        }
+        /* تحسين استجابة الأزرار */
+        button {
+            max-width: 90%; /* تحديد عرض الأزرار */
+        }
+        @media (max-width: 768px) {
+            #scoreContainer, #lives {
+                font-size: 14px; /* تقليل حجم الخط في الشاشات الصغيرة */
+            }
+            button {
+                padding: 10px 20px; /* تقليل حجم الأزرار */
+                font-size: 18px; /* تقليل حجم الخط */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="winBackground"> </div> <!-- خلفية الفوز -->
+
+    <div id="startScreen">
+        <button id="startButton" onclick="startGame()"> play </button>
+    </div>
+
+    <div id="winScreen" style="display:none;">
+        <img sizes="30px" src="path/to/win-background-image.png" alt="نجمة" id="star1">
+        <button id="retryButton" onclick="restartGame()"> هل حاب تجرب مرا اخره</button>
+    </div>
+
+    <div id="loseScreen" style="display:none;">
+        <h1></h1>
+        <button id="retryButtonLose" onclick="restartGame()"> ! لقد خسرت محاولة جديدة !</button>
+    </div>
+
+    <div id="scoreContainer">
+        <div id="score">النقاط: 0</div>
+    </div>
+    <div id="lives">
+        الحياة:
+        <span id="lifeCount">3</span>
+        <img class="star" src="path/to/star-image.png" alt="نجمة" id="star1">
+        <img class="star" src="path/to/star-image.png" alt="نجمة" id="star2">
+        <img class="star" src="path/to/star-image.png" alt="نجمة" id="star3">
+    </div>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let lives = 3;
+        let gameOver = false;
+
+        const shapes = [];
+        const paths = [80, 240, 400]; // المسارات
+        const shapeColors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#8E44AD']; // ألوان الأشكال
+
+        const backgroundImage = new Image();
+        backgroundImage.src = 'path/to/background-image.png' ; // ضع مسار الخلفية هنا
+
+        function drawShape(shape) {
+            ctx.fillStyle = shape.color;
+            ctx.fillRect(shape.x - 20, shape.y - 20, 40, 40); // رسم الشكل كمربع
+        }
+
+        function createShape() {
+            const path = paths[Math.floor(Math.random() * paths.length)];
+            const shape = {
+                x: path,
+                y: 0,
+                speed: 2 + Math.random() * 2,
+                color: shapeColors[Math.floor(Math.random() * shapeColors.length)],
+            };
+            shapes.push(shape);
+        }
+
+        function updateShapes() {
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                const shape = shapes[i];
+                shape.y += shape.speed;
+
+                // تحقق إذا سقط الشكل ولم يتم التقاطه
+                if (shape.y > canvas.height) {
+                    shapes.splice(i, 1); // إزالة الشكل
+                    lives--; // تقليل الحياة
+                    updateLivesDisplay();
+                    if (lives <= 0) {
+                        gameOver = true;
+                        document.getElementById('loseScreen').style.display = 'flex'; // إظهار شاشة الخسارة
+                        document.getElementById('gameCanvas').style.display = 'none'; // إخفاء الكانفاس
+                    }
+                }
+            }
+        }
+
+        function updateLivesDisplay() {
+            document.getElementById('lifeCount').innerText = lives;
+
+            for (let i = 1; i <= 3; i++) {
+                const star = document.getElementById(`star${i}`);
+                star.style.display = i > lives ? 'none' : 'inline';
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerText = `النقاط: ${score}`;
+            if (score >= 120) { // شرط الفوز
+                gameOver = true;
+                document.getElementById('winScreen').style.display = 'flex'; // إظهار شاشة الفوز
+                document.getElementById('winBackground').style.display = 'block'; // إظهار خلفية الفوز
+                document.getElementById('gameCanvas').style.display = 'none'; // إخفاء الكانفاس
+            }
+        }
+
+        function gameLoop() {
+            if (gameOver) return;
+
+            // رسم الخلفية
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+            shapes.forEach(drawShape);
+            updateShapes();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            gameOver = false;
+            shapes.length = 0; 
+            document.getElementById('retryButton').style.display = 'none'; 
+            document.getElementById('winScreen').style.display = 'none'; // إخفاء شاشة الفوز
+            document.getElementById('loseScreen').style.display = 'none'; // إخفاء شاشة الخسارة
+            document.getElementById('startScreen').style.display = 'none'; // إخفاء واجهة البداية
+            document.getElementById('winBackground').style.display = 'none'; // إخفاء خلفية الفوز
+            document.getElementById('gameCanvas').style.display = 'block'; // إظهار الكانفاس
+            updateScore();
+            updateLivesDisplay();
+            gameLoop();
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none'; // إخفاء واجهة البداية
+            document.getElementById('gameCanvas').style.display = 'block'; // إظهار الكانفاس
+            setInterval(createShape, 1000); // إنشاء شكل جديد كل ثانية
+            updateScore();
+            updateLivesDisplay();
+            gameLoop();
+        }
+
+        // إضافة حدث للنقر على الأشكال
+        canvas.addEventListener('mousedown', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            shapes.forEach(shape => {
+                if (
+                    mouseX > shape.x - 20 && mouseX < shape.x + 20 &&
+                    mouseY > shape.y - 20 && mouseY < shape.y + 20
+                ) {
+                    score += 10; // زيادة النقاط عند التقاط الشكل
+                    shapes.splice(shapes.indexOf(shape), 1); // إزالة الشكل من القائمة
+                    updateScore();
+                }
+                
+            });
+        });
+
+        // حدث الخروج من اللعبة عند الخروج من الكانفاس
+        canvas.addEventListener('mouseleave', () => {
+            // لا حاجة لهذا الحدث بعد إزالة السلة
+        });
+    </script>
+</body>
+</html>
