@@ -11,13 +11,18 @@
             overflow: hidden;
             background-color: #f0f8ff;
             text-align: center;
+            height: 100vh; /* تعيين ارتفاع الجسم ليغطي كامل الشاشة */
+            width: 100vw; /* تعيين عرض الجسم ليغطي كامل الشاشة */
         }
         #gameCanvas {
             display: none; /* إخفاء الكانفاس في البداية */
             margin: auto;
             border: 1px solid #000;
+            width: 100%; /* عرض الكانفاس 100% */
+            height: 100%; /* ارتفاع الكانفاس 100% */
         }
         #scoreContainer {
+            display: none; /* إخفاء حاوية النقاط في البداية */
             position: absolute;
             top: 10px;
             left: 10px;
@@ -42,6 +47,7 @@
             font-size: 16px;
         }
         .star {
+            display: none; /* إخفاء النجوم في البداية */
             width: 20px;
             height: 20px;
             margin-left: 5px;
@@ -57,12 +63,11 @@
         #retryButton, #retryButtonLose {
             background-color: #f0e68c;
             color: #000;
-            margin-bottom: 100px
+            margin-bottom: 100px;
         }
         #retryButton:hover, #retryButtonLose:hover {
             background-color: #e3d05b;
             transform: scale(1.05);
-            
         }
         #startButton {
             background-color: #e3d05b;
@@ -125,12 +130,10 @@
     </div>
 
     <div id="winScreen" style="display:none;">
-        <img sizes="30px" src="path/to/win-background-image.png" alt="نجمة" id="star1">
         <button id="retryButton" onclick="restartGame()"> هل حاب تجرب مرا اخره</button>
     </div>
 
     <div id="loseScreen" style="display:none;">
-        <h1></h1>
         <button id="retryButtonLose" onclick="restartGame()"> ! لقد خسرت محاولة جديدة !</button>
     </div>
 
@@ -138,8 +141,7 @@
         <div id="score">النقاط: 0</div>
     </div>
     <div id="lives">
-        الحياة:
-        <span id="lifeCount">3</span>
+        <span id="lifeCount"></span>
         <img class="star" src="path/to/star-image.png" alt="نجمة" id="star1">
         <img class="star" src="path/to/star-image.png" alt="نجمة" id="star2">
         <img class="star" src="path/to/star-image.png" alt="نجمة" id="star3">
@@ -147,6 +149,8 @@
     <canvas id="gameCanvas" width="480" height="640"></canvas>
 
     <script>
+        document.getElementById('lives').style.display = 'flex'; // إظهار النجوم
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let score = 0;
@@ -158,7 +162,7 @@
         const shapeColors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#8E44AD']; // ألوان الأشكال
 
         const backgroundImage = new Image();
-        backgroundImage.src = 'path/to/background-image.png' ; // ضع مسار الخلفية هنا
+        backgroundImage.src = 'path/to/background-image.png'; // ضع مسار الخلفية هنا
 
         function drawShape(shape) {
             ctx.fillStyle = shape.color;
@@ -206,7 +210,7 @@
 
         function updateScore() {
             document.getElementById('score').innerText = `النقاط: ${score}`;
-            if (score >= 120) { // شرط الفوز
+            if (score >= 50) { // شرط الفوز
                 gameOver = true;
                 document.getElementById('winScreen').style.display = 'flex'; // إظهار شاشة الفوز
                 document.getElementById('winBackground').style.display = 'block'; // إظهار خلفية الفوز
@@ -236,6 +240,8 @@
             document.getElementById('startScreen').style.display = 'none'; // إخفاء واجهة البداية
             document.getElementById('winBackground').style.display = 'none'; // إخفاء خلفية الفوز
             document.getElementById('gameCanvas').style.display = 'block'; // إظهار الكانفاس
+            document.getElementById('scoreContainer').style.display = 'block'; // إظهار حاوية النقاط
+
             updateScore();
             updateLivesDisplay();
             gameLoop();
@@ -250,23 +256,24 @@
             gameLoop();
         }
 
-        // إضافة حدث للنقر على الأشكال
+        // إضافة حدث للنقر على الكانفاس
         canvas.addEventListener('mousedown', (event) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
 
-            shapes.forEach(shape => {
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                const shape = shapes[i];
                 if (
                     mouseX > shape.x - 20 && mouseX < shape.x + 20 &&
                     mouseY > shape.y - 20 && mouseY < shape.y + 20
                 ) {
                     score += 10; // زيادة النقاط عند التقاط الشكل
-                    shapes.splice(shapes.indexOf(shape), 1); // إزالة الشكل من القائمة
+                    shapes.splice(i, 1); // إزالة الشكل من القائمة
                     updateScore();
+                    break; // الخروج من الحلقة بعد إزالة الشكل
                 }
-                
-            });
+            }
         });
 
         // حدث الخروج من اللعبة عند الخروج من الكانفاس
