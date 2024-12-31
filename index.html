@@ -130,6 +130,7 @@
     </div>
 
     <div id="winScreen" style="display:none;">
+        <img alt="100%" src="path/to/win-background-image.png">
         <button id="retryButton" onclick="restartGame()"> هل حاب تجرب مرا اخره</button>
     </div>
 
@@ -256,24 +257,22 @@
             gameLoop();
         }
 
-        // إضافة حدث للنقر على الكانفاس
+        // إضافة حدث للنقر على الأشكال
         canvas.addEventListener('mousedown', (event) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
 
-            for (let i = shapes.length - 1; i >= 0; i--) {
-                const shape = shapes[i];
+            shapes.forEach(shape => {
                 if (
                     mouseX > shape.x - 20 && mouseX < shape.x + 20 &&
                     mouseY > shape.y - 20 && mouseY < shape.y + 20
                 ) {
                     score += 10; // زيادة النقاط عند التقاط الشكل
-                    shapes.splice(i, 1); // إزالة الشكل من القائمة
+                    shapes.splice(shapes.indexOf(shape), 1); // إزالة الشكل من القائمة
                     updateScore();
-                    break; // الخروج من الحلقة بعد إزالة الشكل
                 }
-            }
+            });
         });
 
         // حدث الخروج من اللعبة عند الخروج من الكانفاس
