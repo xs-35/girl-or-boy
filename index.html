@@ -210,7 +210,7 @@
 
         function updateScore() {
             document.getElementById('score').innerText = `النقاط: ${score}`;
-            if (score >= 50) { // شرط الفوز
+            if (score >= 10) { // شرط الفوز
                 gameOver = true;
                 document.getElementById('winScreen').style.display = 'flex'; // إظهار شاشة الفوز
                 document.getElementById('winBackground').style.display = 'block'; // إظهار خلفية الفوز
