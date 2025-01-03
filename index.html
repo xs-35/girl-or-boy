@@ -184,26 +184,32 @@
         backgroundImage.src = 'path/to/background-image.png';
 
         const basket = {
-            x: 240,
-            y: 600,
+            x: canvas.width / 2 - 50, // وضع السلة في المنتصف
+            y: canvas.height - 80,
             width: 100,
             height: 40,
             image: new Image(),
         };
         basket.image.src = basketImage;
 
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        // رسم الشكل
         function drawShape(shape) {
             const img = new Image();
             img.src = shape.image;
             ctx.drawImage(img, shape.x - 20, shape.y - 20, 40, 40); // رسم الشكل باستخدام الصورة
         }
 
+        // رسم العقبة
         function drawObstacle(obstacle) {
             const img = new Image();
             img.src = obstacleImage;
             ctx.drawImage(img, obstacle.x - 20, obstacle.y - 20, 40, 40); // رسم العقبة
         }
 
+        // رسم السلة
         function drawBasket() {
             ctx.drawImage(basket.image, basket.x, basket.y, basket.width, basket.height); // رسم السلة
         }
@@ -326,9 +332,32 @@
             gameLoop();
         }
 
-        canvas.addEventListener('mousemove', (event) => {
+        canvas.addEventListener('mousedown', (event) => {
             const rect = canvas.getBoundingClientRect();
-            basket.x = event.clientX - rect.left - basket.width / 2; // تحديث موقع السلة بناءً على حركة الماوس
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            if (mouseX > basket.x && mouseX < basket.x + basket.width && mouseY > basket.y && mouseY < basket.y + basket.height) {
+                isDragging = true;
+                offsetX = mouseX - basket.x;
+                offsetY = mouseY - basket.y;
+            }
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                basket.x = event.clientX - rect.left - offsetX; // تحديث موقع السلة
+                basket.y = event.clientY - rect.top - offsetY; // تحديث موقع السلة
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false; 
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false; 
         });
 
     </script>
