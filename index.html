@@ -175,7 +175,6 @@
             'path/to/image8.png',
             'path/to/image9.png',
             'path/to/image10.png',
-            // ... (أضف المزيد من الصور هنا)
         ];
         const obstacleImage = 'path/to/obstacle-image.png'; 
         const basketImage = 'path/to/basket-image.png'; // صورة السلة
@@ -192,24 +191,18 @@
         };
         basket.image.src = basketImage;
 
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        // رسم الشكل
         function drawShape(shape) {
             const img = new Image();
             img.src = shape.image;
             ctx.drawImage(img, shape.x - 20, shape.y - 20, 40, 40); // رسم الشكل باستخدام الصورة
         }
 
-        // رسم العقبة
         function drawObstacle(obstacle) {
             const img = new Image();
             img.src = obstacleImage;
             ctx.drawImage(img, obstacle.x - 20, obstacle.y - 20, 40, 40); // رسم العقبة
         }
 
-        // رسم السلة
         function drawBasket() {
             ctx.drawImage(basket.image, basket.x, basket.y, basket.width, basket.height); // رسم السلة
         }
@@ -243,7 +236,7 @@
                 if (shape.y > canvas.height) {
                     shapes.splice(i, 1); 
                 } else if (shape.y + 20 > basket.y && shape.x > basket.x && shape.x < basket.x + basket.width) {
-                    score += 1; // زيادة النقاط عند التقاط الشكل
+                    score += 10; // زيادة النقاط عند التقاط الشكل
                     shapes.splice(i, 1); // إزالة الشكل
                     updateScore();
                 }
@@ -280,7 +273,7 @@
 
         function updateScore() {
             document.getElementById('score').innerText = `النقاط: ${score}`;
-            if (score >= 10) { 
+            if (score >= 50) { 
                 gameOver = true;
                 document.getElementById('winScreen').style.display = 'flex'; 
                 document.getElementById('winBackground').style.display = 'block'; 
@@ -332,32 +325,19 @@
             gameLoop();
         }
 
-        canvas.addEventListener('mousedown', (event) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
-
-            if (mouseX > basket.x && mouseX < basket.x + basket.width && mouseY > basket.y && mouseY < basket.y + basket.height) {
-                isDragging = true;
-                offsetX = mouseX - basket.x;
-                offsetY = mouseY - basket.y;
-            }
-        });
-
+        // تحديث موقع السلة بناءً على حركة الماوس
         canvas.addEventListener('mousemove', (event) => {
-            if (isDragging) {
-                const rect = canvas.getBoundingClientRect();
-                basket.x = event.clientX - rect.left - offsetX; // تحديث موقع السلة
-                basket.y = event.clientY - rect.top - offsetY; // تحديث موقع السلة
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left; // موضع الماوس بالنسبة للوحة
+            // تحديث موقع السلة
+            basket.x = mouseX - basket.width / 2; // وضع السلة تحت الماوس
+
+            // منع السلة من الخروج عن حدود اللوحة
+            if (basket.x < 0) {
+                basket.x = 0;
+            } else if (basket.x + basket.width > canvas.width) {
+                basket.x = canvas.width - basket.width;
             }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false; 
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            isDragging = false; 
         });
 
     </script>
